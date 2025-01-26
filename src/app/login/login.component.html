@@ -1,1 +1,43 @@
-<p>login works!</p>
+<!-- login.component.html -->
+<div class="container">
+  <div class="center">
+    <h2>Login</h2>
+    <form (ngSubmit)="onSubmit(loginForm)" #loginForm="ngForm">
+      <div>
+        <label>Email:</label>
+        <input 
+          type="text" 
+          name="email" 
+          [(ngModel)]="email"
+          required 
+        >
+      </div>
+      <div>
+        <label>Password:</label>
+        <input 
+          type="password" 
+          name="password" 
+          [(ngModel)]="password"
+          required 
+        >
+      </div>
+      <button 
+        type="submit" 
+        [disabled]="!loginForm.form.valid"
+      >
+        Login
+      </button>
+      <button 
+        type="button"
+        routerLink="/register"
+      >
+        Register
+      </button>
+    </form>
+    @if (errorMessage) { 
+    <p>
+      {{ errorMessage }}
+    </p>}
+ 
+  </div>
+</div>

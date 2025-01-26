@@ -1,1 +1,39 @@
-<p>home works!</p>
+<div class="chat-container">
+    <div class="sidebar">
+      <div class="channels">
+        <h3>Channels</h3>
+        @for (channel of channels; track channel.id) {
+          <div class="channel-item">{{ channel.name }}</div>
+        }
+        @empty {
+          <div>No channels available</div>
+        }
+      </div>
+  
+      <div class="friends">
+        <h3>Friends</h3>
+        @for (friend of friends; track friend.id) {
+          <div class="friend-item">{{ friend.name }}</div>
+        }
+        @empty {
+          <div>No friends available</div>
+        }
+      </div>
+    </div>
+  
+    <div class="chat-area">
+      <div class="messages">
+        @for (message of messages; track message.id) {
+          <div class="message">
+            <span class="sender">{{ message.sender }}</span>
+            <span class="content">{{ message.content }}</span>
+          </div>
+        }
+      </div>
+  
+      <div class="message-input">
+        <input type="text" [(ngModel)]="newMessage" placeholder="Write new message to send here.">
+        <button (click)="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
