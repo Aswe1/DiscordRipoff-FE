@@ -17,7 +17,11 @@ export class RegisterComponent {
   email: string = '';
   errorMessage: string = '';
 
-  constructor(private apiService: ApiService) {}
+
+  constructor(
+    private apiService: ApiService,
+    private router: Router) 
+    {}
 
   onRegister(): void {
     const newUser: User = {
@@ -28,11 +32,14 @@ export class RegisterComponent {
 
     this.apiService.register(newUser).subscribe({
       next: (response) => {
-        console.log('Registration successful:', response);
+        if (response.successful) {
+          this.router.navigate(['/login']);
+        } else {
+          this.errorMessage = response.message; 
+        }
       },
       error: (error) => {
-        console.error('Error during registration:', error);
-        this.errorMessage = 'Registration failed. Please try again.';
+        this.errorMessage = error.error.message || 'Registration failed. Please try again.';
       }
     });
   }

@@ -1,14 +1,28 @@
-:root {
-    --background-color-light: #ffffff;
-    --background-color-dark: #2e2d2d;
-  }
-  
-  body.dark-mode {
-    background-color: var(--background-color-dark);
-    color: #ffffff; /* Optional: adjust text color for dark mode */
-  }
-  
-  body {
-    background-color: #ffffff; /* Light background color */
-    color: #000000;           /* Dark text color */
+.header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid #ccc;
+   }
+   
+   .theme-toggle {
+    margin-left: auto;
+   }
+   
+   .sidebar {
+    border-right: 1px solid #ccc;
+    width: 250px;
+    border-top: 1px solid #ccc;
+   }
+   
+   .channels-title, .friends-title {
+    padding: 10px;
+    font-weight: bold;
+    border-bottom: 1px solid #ccc;
+   }
+   
+   .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
   }

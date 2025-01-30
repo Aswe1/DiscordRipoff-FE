@@ -36,5 +36,9 @@
       >
       Back to Login
       </button>
+      @if(errorMessage){
+        <div class="error">{{ errorMessage }}</div>
+      }
+      
     </div>
   </div>

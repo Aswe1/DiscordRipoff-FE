@@ -16,6 +16,7 @@ import { User } from '../models/user.model';
 export class LoginComponent {
   email: string = '';
   password: string = '';
+  username: string = '';
   errorMessage: string = '';
 
   constructor(
@@ -28,6 +29,8 @@ export class LoginComponent {
   onSubmit(form: NgForm) {
 
   const newUser: User = {
+      id: -1,
+      username: this.username,
       password: this.password,
       email: this.email 
     };
@@ -36,8 +39,12 @@ export class LoginComponent {
       {
       this.apiService.login(newUser).subscribe({
           next: (response) => {
-            if (response.successful) {
-              localStorage.setItem('authToken', response.token);
+            if (response.successful) 
+              {
+              localStorage.setItem('userId', response.data.id.toString());
+              localStorage.setItem('username', response.data.username);
+              localStorage.setItem('email', response.data.email);
+
               this.router.navigate(['/home']);
             } else {
               this.errorMessage = 'Invalid credentials';

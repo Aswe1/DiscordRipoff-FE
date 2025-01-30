@@ -12,6 +12,7 @@ export class AppComponent {
   title = 'DiscordRipoff-FE';
 
   isDarkMode = false;
+  UserID: string = '';
 
   constructor(private themeService: ThemeService) {
     this.themeService.isDarkMode$.subscribe(
@@ -20,7 +21,11 @@ export class AppComponent {
   }
 
   ngOnInit() {
+    const storedId = localStorage.getItem("userId");
+    const userId = storedId ? Number(storedId) : -1;
+
     this.themeService.initializeTheme();
+    this.UserID = userId.toString();
   }
 
   toggleDarkMode() {
