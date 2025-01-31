@@ -7,6 +7,7 @@ import { User } from './models/user.model';
 import { Channel } from './models/channel.model';
 import { Friend } from './models/friend.model';
 import { Message } from './models/message.model';
+import { ChannelUser } from './models/channelUser.model';
 
 @Injectable({
   providedIn: 'root'
@@ -26,8 +27,22 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/users/register`, user);
   }
 
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem('authToken');
+  updateUserRole(UserID: number, updateUser: ChannelUser): Observable<ChannelUser> {
+    return this.http.put<ChannelUser>(`${this.apiUrl}/channels/${UserID}/users`, updateUser);
+  }
+
+  updateChannel(UserID: number, updatedChannel: Channel): Observable<Channel> {
+    return this.http.put<Channel>(`${this.apiUrl}/channels/${UserID}`, updatedChannel);
+  }
+
+  deleteChannelUser(channelID: number,channelUserID: number): Observable<void> {
+    const userId = Number(localStorage.getItem('userId')) || -1;
+    return this.http.delete<void>(`${this.apiUrl}/channels/${channelID}/auth/${userId}/user/${channelUserID}`);
+  }
+
+  deleteChannel(channelId: number): Observable<void> {
+    const userId = Number(localStorage.getItem('userId')) || -1;
+    return this.http.delete<void>(`${this.apiUrl}/channels/${channelId}/auth/${userId}`);
   }
 
   getChannels(userID: number): Observable<Channel[]> {
@@ -64,12 +79,8 @@ export class ApiService {
     );
   }
 
-  getChannelMessages(channelId: number): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/channel/messages/${channelId}`);
-  }
-
-  sendChannelMessage(channelId: number, content: string): Observable<Message> {
-    return this.http.post<Message>(`${this.apiUrl}/channel/messages/${channelId}`, { content });
+  sendChannelMessage(message: Message): Observable<Message> {
+    return this.http.post<Message>(`${this.apiUrl}/channels/messages`, message );
   }
 
   createChannel(channel: Channel): Observable<{ code: number, message: string, successful: boolean }> {
@@ -83,7 +94,18 @@ export class ApiService {
     const userId = Number(localStorage.getItem('userId')) || -1;
   return this.http.get<{ code: number, message: string, successful: boolean }>( `${this.apiUrl}/friends/add?userId=${userId}&friendId=${friendId}`);
   }
-  
+
+  addUserToChannel(ChannelID: number,UserToAddID: string ) {
+    const userId = Number(localStorage.getItem('userId')) || -1;
+    return this.http.get<{ code: number, message: string, successful: boolean }>(`${this.apiUrl}/channels/${ChannelID}/auth/${userId}/add/${UserToAddID}`);
+  }
+    
+  getChannelMessages(channelId: number): Observable<{ code: number, data: Message[], successful: boolean }> {
+  return this.http.get<{ code: number, data: Message[], successful: boolean }>(
+    `${this.apiUrl}/channels/${channelId}/messages`
+  );
+}
+
   getDirectMessages(friendId: number) {
   const userId = Number(localStorage.getItem('userId')) || -1;
 
@@ -97,6 +119,21 @@ export class ApiService {
    sendDirectMessage(message: Message): Observable<Message> {
     return this.http.post<Message>(`${this.apiUrl}/friends/messages`, message);
    }
+
+   getChannelUsers(channelId: number): Observable<ChannelUser[]> {
+    return this.http.get<{ code: number, data: ChannelUser[], successful: boolean }>(
+      `${this.apiUrl}/channels/${channelId}/users`
+    ).pipe(
+      map(response => {
+        if (!response.successful || !Array.isArray(response.data)) {
+          console.warn('Invalid response format:', response);
+          return [];
+        }
+        return response.data;
+      })
+    );
+  }
+
 }
 
 

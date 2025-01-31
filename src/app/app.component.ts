@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { ThemeService } from './theme.service';
 
 @Component({
@@ -14,15 +14,17 @@ export class AppComponent {
   isDarkMode = false;
   UserID: string = '';
 
-  constructor(private themeService: ThemeService) {
+  constructor(private themeService: ThemeService,private router: Router) {
     this.themeService.isDarkMode$.subscribe(
       mode => this.isDarkMode = mode
     );
   }
 
   ngOnInit() {
-    const storedId = localStorage.getItem("userId");
-    const userId = storedId ? Number(storedId) : -1;
+
+    const userId = Number(localStorage.getItem('userId')) || -1;
+
+    if(userId < 0) this.router.navigate(['/login']);
 
     this.themeService.initializeTheme();
     this.UserID = userId.toString();

@@ -1,66 +1,90 @@
 <div class="chat-container">
-  <div class="sidebar">
+  <div class="sidebar left-sidebar">
     <div class="channels">
       <div class="section-header">
         <h3>Channels</h3>
         <button class="add-button" (click)="showAddChannelDialog = true">+</button>
       </div>
-      
+      @if(NewChannelErrMsg){
+        <div class="error">{{ NewChannelErrMsg }}</div>
+      }
       @if (showAddChannelDialog) {
         <div class="add-dialog">
-          <input 
-            type="text" 
-            [(ngModel)]="newChannelName" 
+          <input
+            type="text"
+            [(ngModel)]="newChannelName"
             placeholder="Channel name"
             (keyup.enter)="createChannel()"
           >
           <button (click)="createChannel()">Create</button>
-          <button (click)="showAddChannelDialog = false">Cancel</button>
+          <button (click)="showAddChannelDialog = false; AddFriendErrMsg = ''; showRemoveChannelDialog = true; ">Cancel</button>
         </div>
       }
-
+      @if (showEditChannelDialog) {
+        <div class="add-dialog">
+          <input
+            type="text"
+            [(ngModel)]="selectedChannelForEdit.name"
+            placeholder="New channel name"
+            (keyup.enter)="updateChannel()"
+          >
+          <button (click)="updateChannel()">Update</button>
+          <button (click)="showEditChannelDialog = false">Cancel</button>
+        </div>
+      }
       @for (channel of channels; track channel.id) {
-        <div 
-          class="channel-item" 
-          [class.selected]="channel.id === selectedChannelId"
-          (click)="selectChannel(channel.id ?? -1)"
-        >
-          {{ channel.name }}
+        <div class="channel-item-container">
+          <div
+            class="channel-item"
+            [class.selected]="channel.id === selectedChannelId"
+            (click)="selectChannel(channel.id ?? -1)"
+          >
+            {{ channel.name }}
+          </div>
+          @if (channel.id === selectedChannelId) {
+            <div class="channel-actions">
+              @if (getUserRoleInChannel(channel.id ?? -1) == 'OWNER' || getUserRoleInChannel(channel.id ?? -1) == 'ADMIN')
+               {
+                <button class="action-button modify" (click)="startEditChannel(channel)">Modify</button>
+               }
+               @if (getUserRoleInChannel(channel.id ?? -1) == 'OWNER')
+               {
+              <button class="action-button delete" (click)="deleteChannel(channel.id ?? -1)">Delete</button>
+               }
+            </div>
+          }
         </div>
       }
       @empty {
         <div>No channels available</div>
       }
     </div>
-
     <div class="friends">
       <div class="section-header">
         <h3>Friends</h3>
         <button class="add-button" (click)="showAddFriendDialog = true">+</button>
       </div>
-
       @if (showAddFriendDialog) {
         <div class="add-dialog">
-          @if(errorMessage){
-            <div class="error">{{ errorMessage }}</div>
+          @if(AddFriendErrMsg){
+            <div class="error">{{ AddFriendErrMsg }}</div>
           }
-          <input 
-            type="text" 
-            [(ngModel)]="newFriendId" 
+          <input
+            type="text"
+            [(ngModel)]="newFriendId"
             placeholder="Friend ID"
             (keyup.enter)="addFriend()"
           >
           <button (click)="addFriend()">Add</button>
-          <button (click)="showAddFriendDialog = false; errorMessage = '' ">Cancel</button>
+          <button (click)="showAddFriendDialog = false; AddFriendErrMsg = '' ">Cancel</button>
         </div>
       }
-
       @for (friend of friends; track friend.id) {
-        <div class="friend-item" 
-        [class.selected]="friend.id === selectedFriendId"
-        (click)="selectFriend(friend.user.id ?? -1)">
-     {{ friend.user.username }}
-   </div>
+        <div class="friend-item"
+          [class.selected]="friend.id === selectedFriendId"
+          (click)="selectFriend(friend.user)">
+          {{ friend.user.username }}
+        </div>
       }
       @empty {
         <div>No friends available</div>
@@ -73,17 +97,16 @@
       <div class="messages">
         @for (message of messages; track message.id) {
           <div class="message">
-            <span class="sender">{{message.sender.username}}</span>: 
+            <span class="sender">{{message.sender.username}}</span>:
             <span class="content">{{ message.content }}</span>
             <span class="timestamp">{{ message.timestamp | date:'short' }}</span>
           </div>
         }
       </div>
-
       <div class="message-input">
-        <input 
-          type="text" 
-          [(ngModel)]="newMessageInBox" 
+        <input
+          type="text"
+          [(ngModel)]="newMessageInBox"
           (keyup.enter)="sendMessage()"
           placeholder="Write new message to send here."
         >
@@ -92,6 +115,74 @@
     } @else {
       <div class="no-selection">
         Select a channel or friend to start chatting
+      </div>
+    }
+  </div>
+
+  <div class="sidebar right-sidebar">
+    @if (selectedChannelId) {
+      <div class="channel-users">
+        <div class="section-header">
+          <h3>Channel Users</h3>
+          @if (getUserRoleInChannel(selectedChannelId) === 'OWNER' || getUserRoleInChannel(selectedChannelId) === 'ADMIN') {
+          <button class="add-button" (click)="showAddUserDialog = true">+</button>
+          }
+        </div>
+        @if (showAddUserDialog) {
+          <div class="add-dialog">
+            @if(AddUserToChnlErrMsg){
+              <div class="error">{{ AddUserToChnlErrMsg }}</div>
+            }
+            <input
+              type="text"
+              [(ngModel)]="newUserToAddID"
+              placeholder="User ID"
+              (keyup.enter)="addUserToChannel()"
+            >
+            <button (click)="addUserToChannel()">Add</button>
+            <button (click)="showAddUserDialog = false; AddUserToChnlErrMsg = ''">Cancel</button>
+          </div>
+        }
+        @for (channelUser of channelUsers; track channelUser.id) {
+          <div class="channel-item">
+            <div class="user-item"
+            [class.selected]="channelUser.id === selectedChannelUserId"
+            (click)="selectedChannelUserId = channelUser.id ?? -1"
+            >
+              {{ channelUser.user.username }}
+            </div>
+            @if (channelUser.id === selectedChannelUserId && getUserRoleInChannel(selectedChannelId) === 'OWNER' || getUserRoleInChannel(selectedChannelId) === 'ADMIN') {
+              <div class="user-actions">
+                <button class="action-button modify" (click)="modifyUserRole(channelUser)">Modify</button>
+                <button class="action-button delete" (click)="kickUser(channelUser)">Kick</button>
+              </div>
+            }
+          </div>
+        }
+        @empty {
+          <div>No users in this channel</div>
+        }
+        @if (showModifyUserRoleDialog) {
+          <div class="add-dialog">
+            <select [(ngModel)]="selectedUserRole">
+              <option value="ADMIN">Admin</option>
+              <option value="GUEST">Guest</option>
+            </select>
+            <button (click)="updateUserRole()">Update</button>
+            <button (click)="showModifyUserRoleDialog = false">Cancel</button>
+          </div>
+        }
+      </div>
+    }
+    @if (selectedFriendId) {
+      <div class="friend-details">
+        <h3>Friend Details</h3>
+        <div class="detail-item">
+          <strong>Username:</strong> {{ selectedFriend?.username }}
+        </div>
+        <div class="detail-item">
+          <strong>Email:</strong> {{ selectedFriend?.email }}
+        </div>
       </div>
     }
   </div>
